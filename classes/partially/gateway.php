@@ -248,7 +248,9 @@ class WC_Gateway_Partially extends WC_Payment_Gateway {
           $customOffer = get_post_meta( $item['product_id'], 'partially_offer', true );
           if ( ! empty($customOffer)) $offer_id = $customOffer;
         }
-
+		if ( isset($_REQUEST['woo-partially-offer']) && $_REQUEST['woo-partially-offer'] != '' ) {
+			$offer_id = $_REQUEST['woo-partially-offer'];
+		}
         $body = array(
             'payment_plan' => array(
               'offer_id' => apply_filters('partially_gateway_offer', $offer_id),

@@ -3,7 +3,7 @@
 * Plugin Name: Woo Partial.ly
 * License: GPLv2 or later
 * Plugin URI: https://partial.ly
-* Version: 2.1.7
+* Version: 52.1.7
 * Description: Add Partial.ly payment plans to your WooCommerce store
 * Author: Partially LLC
 * Author URI: https://partial.ly
@@ -45,4 +45,34 @@ function woocommerce_partially_init() {
 
     include_once PARTIALLY_PATH . "/inc/checkout-button.php";
 
+}
+
+
+
+add_action('woo_after_payment_method', 'partially_woo_after_payment_method');
+function partially_woo_after_payment_method( $gateway ){
+	if ( $gateway->id == 'partially' ) {	
+		$defaultOfferId = $gateway->get_option('offer-id');
+		foreach ($gateway->get_offers() as $offer) {
+			$offerOptions[$offer->id] = $offer->name;
+		}
+		
+		
+		// see if any products override the offer
+		foreach (WC()->cart->get_cart() as $cart_item_key => $item) {
+			$customOffer = get_post_meta( $item['product_id'], 'partially_offer', true );
+		}
+		?>
+		<div class="payment_box payment_method_<?php echo esc_attr( $gateway->id ); ?>" <?php if ( ! $gateway->chosen ) : /* phpcs:ignore Squiz.ControlStructures.ControlSignature.NewlineAfterOpenBrace */ ?>style="display:none;"<?php endif; /* phpcs:ignore Squiz.ControlStructures.ControlSignature.NewlineAfterOpenBrace */ ?>>
+			<select name="woo-partially-offer" >
+				<?php foreach( $offerOptions as $key=>$value):?>
+					<?php if ( in_array($key , $customOffer)):?>
+						<option value="<?php echo $key;?>"><?php echo $value;?></option>
+					<?php endif;?>
+				<?php endforeach;?>
+			</select>
+		</div>
+		<?php
+		
+	}
 }

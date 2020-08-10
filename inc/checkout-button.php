@@ -135,7 +135,6 @@ function maybe_add_partially_cart_button() {
         }
         </script>
       ";
-
   }
 }
 

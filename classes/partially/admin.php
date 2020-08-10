@@ -29,11 +29,12 @@ class Partially_Admin {
 			$offerOptions[$offer->id] = $offer->name;
 		}
 
-		woocommerce_wp_select(array(
+		woocommerce_wp_multiple_select(array(
 			'id' => 'partially_offer',
 			'label' => __('Partially offer', 'woo-partially'),
 			'value' => get_post_meta( get_the_ID(), 'partially_offer', true ),
-			'options' => $offerOptions
+			'options' => $offerOptions,
+			'custom_attributes'	=> array('multiple' => 'multiple' )
 		));
 
 		echo '</div>';
@@ -48,4 +49,61 @@ class Partially_Admin {
 			delete_post_meta($id, 'partially_disabled');
 		}
 	}
+}
+
+/**
+ * Output a select input box.
+ *
+ * @param array $field Data about the field to render.
+ */
+function woocommerce_wp_multiple_select( $field ) {
+	global $thepostid, $post;
+
+	$thepostid = empty( $thepostid ) ? $post->ID : $thepostid;
+	$field     = wp_parse_args(
+		$field, array(
+			'class'             => 'select short',
+			'style'             => '',
+			'wrapper_class'     => '',
+			'value'             => get_post_meta( $thepostid, $field['id'], true ),
+			'name'              => $field['id'],
+			'desc_tip'          => false,
+			'custom_attributes' => array(),
+		)
+	);
+
+	$wrapper_attributes = array(
+		'class' => $field['wrapper_class'] . " form-field {$field['id']}_field",
+	);
+
+	$label_attributes = array(
+		'for' => $field['id'],
+	);
+
+	$field_attributes          = (array) $field['custom_attributes'];
+	$field_attributes['style'] = $field['style'];
+	$field_attributes['id']    = $field['id'];
+	$field_attributes['name']  = $field['name'].'[]';
+	$field_attributes['class'] = $field['class'];
+
+	$tooltip     = ! empty( $field['description'] ) && false !== $field['desc_tip'] ? $field['description'] : '';
+	$description = ! empty( $field['description'] ) && false === $field['desc_tip'] ? $field['description'] : '';
+	?>
+	<p <?php echo wc_implode_html_attributes( $wrapper_attributes ); // WPCS: XSS ok. ?>>
+		<label <?php echo wc_implode_html_attributes( $label_attributes ); // WPCS: XSS ok. ?>><?php echo wp_kses_post( $field['label'] ); ?></label>
+		<?php if ( $tooltip ) : ?>
+			<?php echo wc_help_tip( $tooltip ); // WPCS: XSS ok. ?>
+		<?php endif; ?>
+		<select <?php echo wc_implode_html_attributes( $field_attributes ); // WPCS: XSS ok. ?>>
+			<?php
+			foreach ( $field['options'] as $key => $value ) {
+				echo '<option value="' . esc_attr( $key ) . '"' . wc_selected( $key, $field['value'] ) . '>' . esc_html( $value ) . '</option>';
+			}
+			?>
+		</select>
+		<?php if ( $description ) : ?>
+			<span class="description"><?php echo wp_kses_post( $description ); ?></span>
+		<?php endif; ?>
+	</p>
+	<?php
 }
